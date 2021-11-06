@@ -22,7 +22,16 @@ async function run() {
         console.log('database connect success');
 
         const database = client.db("doctorsDB");
-        const doctorCollections = database.collection("doctors");
+        const appointmentsCollections = database.collection("appointments");
+
+        // insert appointments
+        app.post('/appointments', async (req, res) => {
+            const appointment = req.body;
+            const result = await appointmentsCollections.insertOne(appointment)
+            console.log(result);
+            res.json(result)
+
+        })
 
 
     }
