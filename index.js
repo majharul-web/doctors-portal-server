@@ -23,6 +23,7 @@ async function run() {
 
         const database = client.db("doctorsDB");
         const appointmentsCollections = database.collection("appointments");
+        const usersCollections = database.collection("users");
 
         // insert appointments
         app.post('/appointments', async (req, res) => {
@@ -30,7 +31,32 @@ async function run() {
             const result = await appointmentsCollections.insertOne(appointment)
             console.log(result);
             res.json(result)
+        })
 
+        // get appointments
+        app.get('/appointments', async (req, res) => {
+            const email = req.query.email;
+            const date = new Date(req.query.date).toLocaleDateString();
+            const query = { email: email, date: date };
+            const result = await appointmentsCollections.find(query).toArray();
+            res.send(result)
+        })
+
+        // save user info manual login
+        app.post('/users', async (req, res) => {
+            const user = req.body;
+            const result = await usersCollections.insertOne(user);
+            res.send(result);
+        })
+
+        // save user info google login
+        app.put('/users', async (req, res) => {
+            const user = req.body;
+            const filter = { email: user.email };
+            const options = { upsert: true };
+            const doc = { $set: user }
+            const result = await usersCollections.updateOne(filter, doc, options);
+            res.send(result)
         })
 
 
