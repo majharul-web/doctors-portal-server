@@ -58,13 +58,10 @@ async function run() {
             const result = await usersCollections.updateOne(filter, doc, options);
             res.send(result)
         })
-
-
     }
     finally {
         //   await client.close();
     }
-
 }
 run().catch(console.dir);
 
