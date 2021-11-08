@@ -6,7 +6,7 @@ const cors = require('cors');
 require('dotenv').config();
 
 // token part
-const serviceAccount = require('./doctors-portal-firebase-adminsdk.json');
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
 });
