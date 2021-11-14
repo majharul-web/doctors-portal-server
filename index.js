@@ -111,7 +111,14 @@ async function run() {
             else {
                 res.statusCode(403).json({ message: 'you dont allowed' })
             }
+        })
 
+        // get specific appointment
+        app.get('/appointment/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await appointmentsCollections.findOne(query);
+            res.json(result);
         })
     }
     finally {
