@@ -4,6 +4,7 @@ const ObjectId = require('mongodb').ObjectId;
 const admin = require("firebase-admin");
 const cors = require('cors');
 require('dotenv').config();
+const stripe = require("stripe")(process.env.STRIPE_SECRET);
 
 // token part
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
@@ -119,6 +120,33 @@ async function run() {
             const query = { _id: ObjectId(id) };
             const result = await appointmentsCollections.findOne(query);
             res.json(result);
+        })
+
+        // payment method
+        app.post('/create-payment-intent', async (req, res) => {
+            const paymentInfo = req.body;
+            const amount = paymentInfo.price * 100;
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: 'usd',
+                payment_method_types: ['card']
+            });
+            res.json({ clientSecret: paymentIntent.client_secret });
+
+        })
+
+        // update payment status
+        app.put('/appointments/:id', async (req, res) => {
+            const id = req.params.id;
+            const payment = req.body;
+            const filter = { _id: ObjectId(id) };
+            const updateDoc = {
+                $set: {
+                    payment: payment
+                }
+            }
+            const result = await appointmentsCollections.updateOne(filter, updateDoc);
+            res.send(result);
         })
     }
     finally {
