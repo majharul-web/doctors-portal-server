@@ -5,6 +5,7 @@ const admin = require("firebase-admin");
 const cors = require('cors');
 require('dotenv').config();
 const stripe = require("stripe")(process.env.STRIPE_SECRET);
+const fileUpload = require('express-fileupload');
 
 // token part
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
@@ -19,6 +20,7 @@ const port = process.env.PORT || 5000;
 // middleware
 app.use(cors());
 app.use(express.json());
+app.use(fileUpload());
 
 // database connection
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.6soco.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
@@ -48,6 +50,7 @@ async function run() {
         const database = client.db("doctorsDB");
         const appointmentsCollections = database.collection("appointments");
         const usersCollections = database.collection("users");
+        const doctorsCollections = database.collection("doctors");
 
         // insert appointments
         app.post('/appointments', async (req, res) => {
@@ -147,6 +150,29 @@ async function run() {
             }
             const result = await appointmentsCollections.updateOne(filter, updateDoc);
             res.send(result);
+        })
+
+        // add doctor
+        app.post('/doctors', async (req, res) => {
+            const name = req.body.name;
+            const email = req.body.email
+            const image = req.files.image;
+            const imageData = image.data;
+            const encodedImage = imageData.toString('base64');
+            const imageBuffer = Buffer.from(encodedImage, 'base64');
+            const doctor = {
+                name: name,
+                email: email,
+                image: imageBuffer
+            }
+            const result = await doctorsCollections.insertOne(doctor);
+            res.json(result);
+        })
+
+        // show doctors
+        app.get('/doctors', async (req, res) => {
+            const doctors = await doctorsCollections.find({}).toArray();
+            res.json(doctors)
         })
     }
     finally {
